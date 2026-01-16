@@ -1,155 +1,155 @@
-# Nuxt 3 Board Project
+# Nuxt 3 게시판 프로젝트
 
-This is a **Board Application** built with **Nuxt 3** and **MongoDB**. It features full-stack capability with server-side rendering (SSR), JWT-based authentication, and OAuth2 social login integration (Kakao, Naver).
+이 프로젝트는 **Nuxt 3**와 **MongoDB**로 구축된 **게시판 애플리케이션**입니다. 서버 사이드 렌더링(SSR), JWT 기반 인증, 그리고 OAuth2 소셜 로그인(카카오, 네이버) 기능을 갖춘 풀스택 애플리케이션입니다.
 
-## 🛠 Tech Stack
+## 🛠 기술 스택
 
-- **Framework**: [Nuxt 3](https://nuxt.com/) (Vue 3, Nitro)
-- **Database**: [MongoDB](https://www.mongodb.com/) (using Mongoose)
-- **Authentication**: JWT (JSON Web Token), OAuth2 (Kakao, Naver)
-- **State Management**: Nuxt `useState` / `useCookie`
-- **Styling**: Scoped CSS
+- **프레임워크**: [Nuxt 3](https://nuxt.com/) (Vue 3, Nitro)
+- **데이터베이스**: [MongoDB](https://www.mongodb.com/) (Mongoose 사용)
+- **인증**: JWT (JSON Web Token), OAuth2 (카카오, 네이버)
+- **상태 관리**: Nuxt `useState` / `useCookie`
+- **스타일링**: Scoped CSS
 
-## 📊 ERD (Entity Relationship Diagram)
+## 📊 ERD (개체 관계 다이어그램)
 
 ```mermaid
 erDiagram
     User ||--o{ Board : writes
     User {
         String _id PK "MongoDB ObjectId"
-        String userid uk "Unique User ID"
-        String name "User Name / Nickname"
-        String password "Hashed Password (optional for OAuth)"
-        String email "Email Address"
-        String job "Job"
-        String hobbies "Hobbies"
-        String gender "Gender"
-        String provider "Auth Provider (local, kakao, naver)"
-        String providerId "Social Provider ID"
+        String userid uk "고유 사용자 ID"
+        String name "사용자 이름 / 닉네임"
+        String password "해시된 비밀번호 (OAuth 사용자의 경우 선택 사항)"
+        String email "이메일 주소"
+        String job "직업"
+        String hobbies "취미"
+        String gender "성별"
+        String provider "인증 제공자 (local, kakao, naver)"
+        String providerId "소셜 제공자 ID"
         Date createdAt
         Date updatedAt
     }
     Board {
         String _id PK "MongoDB ObjectId"
-        String userid FK "Author User ID"
-        String writer "Author Name"
-        String title "Post Title"
-        String content "Post Content"
-        Number hitno "View Count"
-        Date regDate "Created Date"
-        Date updatedAt "Updated Date"
+        String userid FK "작성자 사용자 ID"
+        String writer "작성자 이름"
+        String title "게시글 제목"
+        String content "게시글 내용"
+        Number hitno "조회수"
+        Date regDate "작성일"
+        Date updatedAt "수정일"
     }
 ```
 
-## 🔄 OAuth2 Login Sequence Diagram
+## 🔄 OAuth2 로그인 시퀀스 다이어그램
 
-The following diagram illustrates the authentication flow for Social Login (Kakao/Naver).
+다음 다이어그램은 소셜 로그인(카카오/네이버)의 인증 흐름을 설명합니다.
 
 ```mermaid
 sequenceDiagram
-    participant Client as Frontend (Nuxt Page)
-    participant AuthAPI as Auth Handler (/api/auth)
-    participant Provider as Auth Provider (Naver/Kakao)
+    participant Client as 프론트엔드 (Nuxt)
+    participant AuthAPI as 인증 핸들러 (/api/auth)
+    participant Provider as 인증 제공자 (네이버/카카오)
     participant DB as MongoDB
 
     Client->>AuthAPI: GET /api/auth/{provider}
-    AuthAPI-->>Client: 302 Redirect to Provider Auth URL
+    AuthAPI-->>Client: 302 인증 제공자 URL로 리다이렉트
     
-    Client->>Provider: User Logs in & Authorizes
-    Provider-->>Client: 302 Redirect to Callback URL?code=...
+    Client->>Provider: 사용자 로그인 및 권한 승인
+    Provider-->>Client: 302 콜백 URL로 리다이렉트?code=...
     
     Client->>AuthAPI: GET /api/auth/{provider}/callback?code=...
     
-    AuthAPI->>Provider: POST /token (Request Access Token)
-    Provider-->>AuthAPI: Access Token
+    AuthAPI->>Provider: POST /token (액세스 토큰 요청)
+    Provider-->>AuthAPI: 액세스 토큰 발급
     
-    AuthAPI->>Provider: GET /user/me (Request User Info)
-    Provider-->>AuthAPI: User Profile (id, email, etc.)
+    AuthAPI->>Provider: GET /user/me (사용자 정보 요청)
+    Provider-->>AuthAPI: 사용자 프로필 (id, email 등)
     
-    AuthAPI->>DB: Find User by provider & providerId
-    alt User exists
-        DB-->>AuthAPI: Return User
-    else User does not exist
-        AuthAPI->>DB: Create New User
-        DB-->>AuthAPI: Return New User
+    AuthAPI->>DB: provider 및 providerId로 사용자 조회
+    alt 사용자 존재함
+        DB-->>AuthAPI: 사용자 정보 반환
+    else 사용자 없음
+        AuthAPI->>DB: 신규 사용자 생성
+        DB-->>AuthAPI: 신규 사용자 반환
     end
     
-    AuthAPI->>AuthAPI: Generate JWT Token
-    AuthAPI-->>Client: Set Cookie (auth_token) & Redirect to /board/list
+    AuthAPI->>AuthAPI: JWT 토큰 생성
+    AuthAPI-->>Client: 쿠키 설정 (auth_token) 및 /board/list로 리다이렉트
 ```
 
-## 📝 Table (Collection) Specifications
+## 📝 테이블 (컬렉션) 명세서
 
-### 1. Users Collection (`users`)
+### 1. 사용자 컬렉션 (`users`)
 
-| Field | Type | Required | Unique | Description |
+| 필드명 | 타입 | 필수 여부 | 고유 여부 | 설명 |
 | :--- | :--- | :--- | :--- | :--- |
-| `_id` | ObjectId | Yes | Yes | MongoDB Document ID |
-| `userid` | String | Yes | Yes | User's unique identifier (e.g., `user1`, `kakao_12345`) |
-| `name` | String | Yes | No | User's display name or nickname |
-| `password` | String | No* | No | Hashed password. Required only for `local` provider. |
-| `email` | String | Yes | No | User's email address |
-| `job` | String | No | No | User's job |
-| `hobbies` | String | No | No | User's hobbies |
-| `gender` | String | No | No | User's gender |
-| `provider` | String | Yes | No | Login provider: `local`, `kakao`, `naver` (Default: `local`) |
-| `providerId` | String | No | No | Unique ID from the social provider |
-| `createdAt` | Date | Yes | No | Creation timestamp |
-| `updatedAt` | Date | Yes | No | Last update timestamp |
+| `_id` | ObjectId | 예 | 예 | MongoDB 문서 ID |
+| `userid` | String | 예 | 예 | 사용자 고유 식별자 (예: `user1`, `kakao_12345`) |
+| `name` | String | 예 | 아니오 | 사용자 표시 이름 또는 닉네임 |
+| `password` | String | 아니오* | 아니오 | 해시된 비밀번호. `local` 제공자인 경우에만 필수. |
+| `email` | String | 예 | 아니오 | 사용자 이메일 주소 |
+| `job` | String | 아니오 | 아니오 | 사용자 직업 |
+| `hobbies` | String | 아니오 | 아니오 | 사용자 취미 |
+| `gender` | String | 아니오 | 아니오 | 사용자 성별 |
+| `provider` | String | 예 | 아니오 | 로그인 제공자: `local`, `kakao`, `naver` (기본값: `local`) |
+| `providerId` | String | 아니오 | 아니오 | 소셜 제공자의 고유 ID |
+| `createdAt` | Date | 예 | 아니오 | 생성 일시 |
+| `updatedAt` | Date | 예 | 아니오 | 마지막 수정 일시 |
 
-### 2. Boards Collection (`boards`)
+### 2. 게시판 컬렉션 (`boards`)
 
-| Field | Type | Required | Description |
+| 필드명 | 타입 | 필수 여부 | 설명 |
 | :--- | :--- | :--- | :--- |
-| `_id` | ObjectId | Yes | MongoDB Document ID |
-| `userid` | String | Yes | ID of the user who wrote the post |
-| `writer` | String | Yes | Name of the user who wrote the post |
-| `title` | String | Yes | Title of the post |
-| `content` | String | Yes | Content of the post |
-| `hitno` | Number | No | View count (Default: 0) |
-| `regDate` | Date | Yes | Creation timestamp (`createdAt` alias) |
-| `updatedAt` | Date | Yes | Last update timestamp |
+| `_id` | ObjectId | 예 | MongoDB 문서 ID |
+| `userid` | String | 예 | 작성자의 사용자 ID |
+| `writer` | String | 예 | 작성자의 이름 |
+| `title` | String | 예 | 게시글 제목 |
+| `content` | String | 예 | 게시글 내용 |
+| `hitno` | Number | 아니오 | 조회수 (기본값: 0) |
+| `regDate` | Date | 예 | 작성 일시 (`createdAt` 별칭) |
+| `updatedAt` | Date | 예 | 마지막 수정 일시 |
 
-## 🚀 Setup & Run
+## 🚀 설치 및 실행 가이드
 
-### Prerequisites
-- Node.js (v18+)
-- MongoDB (Local or Atlas)
+### 사전 요구사항
+- Node.js (v18 이상)
+- MongoDB (로컬 또는 Atlas)
 
-### 1. Install Dependencies
+### 1. 의존성 설치
 
 ```bash
 npm install
 ```
 
-### 2. Environment Configuration (.env)
+### 2. 환경 변수 설정 (.env)
 
-Create a `.env` file in the root directory:
+루트 디렉토리에 `.env` 파일을 생성하고 다음 내용을 설정하세요:
 
 ```ini
-# Database
+# 데이터베이스
 MONGODB_URI=mongodb://localhost:27017/boarddev
 
-# Auth Secret
+# 인증 시크릿 키
 JWT_SECRET=your_jwt_secret_key
 
-# OAuth Providers
-# Kakao
+# OAuth 제공자 설정
+# 카카오
 KAKAO_CLIENT_ID=your_kakao_client_id
 KAKAO_CLIENT_SECRET=your_kakao_client_secret
 
-# Naver
+# 네이버
 NAVER_CLIENT_ID=your_naver_client_id
 NAVER_CLIENT_SECRET=your_naver_client_secret
 
-# Public URL (for callbacks)
+# 퍼블릭 URL (콜백용)
 BASE_URL=http://localhost:3000
 ```
 
-### 3. Run Development Server
+### 3. 개발 서버 실행
 
 ```bash
 npm run dev
 ```
 
-Server will start at `http://localhost:3000`.
+서버가 `http://localhost:3000`에서 시작됩니다.
