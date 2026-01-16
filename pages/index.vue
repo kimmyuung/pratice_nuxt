@@ -41,6 +41,20 @@
           회원가입
         </button>
       </div>
+      
+      <div class="social-login">
+        <p>소셜 계정으로 로그인</p>
+        <div class="social-buttons">
+          <button @click="loginWithKakao" class="social-btn kakao-btn">
+            <span class="social-icon">💬</span>
+            카카오 로그인
+          </button>
+          <button @click="loginWithNaver" class="social-btn naver-btn">
+            <span class="social-icon">N</span>
+            네이버 로그인
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -97,6 +111,14 @@ const handleLogin = async () => {
 
 const goToRegister = () => {
   router.push('/register');
+};
+
+const loginWithKakao = () => {
+  window.location.href = '/api/auth/kakao';
+};
+
+const loginWithNaver = () => {
+  window.location.href = '/api/auth/naver';
 };
 </script>
 
@@ -207,5 +229,61 @@ h1 {
 
 .register-btn:hover {
   background-color: #e0e0e0;
+}
+
+.social-login {
+  margin-top: 30px;
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.social-login p {
+  color: #666;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.social-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.social-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.social-icon {
+  font-size: 18px;
+}
+
+.kakao-btn {
+  background-color: #FEE500;
+  color: #191919;
+}
+
+.kakao-btn:hover {
+  background-color: #E6CF00;
+}
+
+.naver-btn {
+  background-color: #03C75A;
+  color: white;
+}
+
+.naver-btn:hover {
+  background-color: #02B350;
 }
 </style>
